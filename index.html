@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Diet System</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: rgba(255,255,255,0.05);
+    --surface2: rgba(255,255,255,0.09);
+    --accent: #38bdf8;
+    --accent2: #34d399;
+    --accent3: #f472b6;
+    --warn: #fb923c;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --border: rgba(255,255,255,0.1);
+    --radius: 18px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background:
+      radial-gradient(ellipse 80% 50% at 20% 10%, rgba(56,189,248,0.08) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 80%, rgba(52,211,153,0.06) 0%, transparent 60%);
+    pointer-events:none; z-index:0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top:0; z-index:100;
+    display: flex; align-items:center; justify-content:space-between;
+    padding: 16px 36px;
+    background: rgba(8,12,20,0.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family:'Outfit',sans-serif;
+    font-size:22px; font-weight:800;
+    background: linear-gradient(90deg,#38bdf8,#34d399);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+    letter-spacing:-0.5px;
+  }
+  .logo span { font-size:14px; font-weight:400; color:var(--muted); margin-left:8px; -webkit-text-fill-color:var(--muted); }
+  .nav-steps { display:flex; gap:6px; }
+  .step-dot {
+    width:8px; height:8px; border-radius:50%;
+    background:var(--border); border:1px solid var(--border);
+    transition:.3s;
+  }
+  .step-dot.active { background:var(--accent); border-color:var(--accent); box-shadow:0 0 8px var(--accent); }
+  .step-dot.done { background:var(--accent2); border-color:var(--accent2); }
+
+  /* PAGES */
+  .page { display:none; animation: pageIn .5s ease; position:relative; z-index:1; }
+  .page.active { display:block; }
+  @keyframes pageIn {
+    from { opacity:0; transform:translateY(24px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* HERO LAYOUT */
+  .hero {
+    min-height: calc(100vh - 65px);
+    display:flex; align-items:center; justify-content:center;
+    padding: 40px 20px;
+  }
+  .card {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 50px 44px;
+    width: 100%; max-width: 460px;
+    backdrop-filter: blur(20px);
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+  }
+  .card-wide { max-width: 900px; }
+
+  .card-icon {
+    width:60px; height:60px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:26px; margin-bottom:24px;
+  }
+  .icon-blue  { background:rgba(56,189,248,0.15); }
+  .icon-green { background:rgba(52,211,153,0.15); }
+  .icon-pink  { background:rgba(244,114,182,0.15); }
+  .icon-orange{ background:rgba(251,146,60,0.15); }
+
+  h1 {
+    font-family:'Outfit',sans-serif;
+    font-size:26px; font-weight:700;
+    margin-bottom:6px; line-height:1.2;
+  }
+  .subtitle { color:var(--muted); font-size:14px; margin-bottom:30px; }
+
+  /* INPUTS */
+  .field { margin-bottom:16px; }
+  label { display:block; font-size:13px; font-weight:500; color:var(--muted); margin-bottom:7px; letter-spacing:.3px; }
+  input, select {
+    width:100%; padding:14px 16px;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--border);
+    border-radius:12px; color:var(--text);
+    font-family:'DM Sans',sans-serif; font-size:15px;
+    outline:none; transition:.25s;
+  }
+  input:focus, select:focus {
+    border-color:var(--accent);
+    background:rgba(56,189,248,0.07);
+    box-shadow:0 0 0 3px rgba(56,189,248,0.12);
+  }
+  select option { background:#1e293b; }
+
+  /* BUTTONS */
+  .btn {
+    width:100%; padding:15px;
+    background:linear-gradient(135deg,#38bdf8,#0ea5e9);
+    color:#fff; border:none; border-radius:12px;
+    font-size:16px; font-weight:600;
+    font-family:'Outfit',sans-serif;
+    cursor:pointer; transition:.3s;
+    letter-spacing:.3px; margin-top:6px;
+  }
+  .btn:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(56,189,248,0.3); }
+  .btn:active { transform:translateY(0); }
+  .btn-green {
+    background:linear-gradient(135deg,#34d399,#059669);
+    box-shadow:none;
+  }
+  .btn-green:hover { box-shadow:0 8px 24px rgba(52,211,153,0.3); }
+  .btn-ghost {
+    background:transparent;
+    border:1px solid var(--border);
+    color:var(--muted); font-size:14px;
+    padding:11px; margin-top:10px;
+  }
+  .btn-ghost:hover { background:var(--surface); color:var(--text); box-shadow:none; }
+
+  /* ERROR */
+  .error-msg { color:#f87171; font-size:13px; margin-bottom:12px; display:none; padding:10px 14px; background:rgba(248,113,113,0.1); border-radius:10px; border:1px solid rgba(248,113,113,0.2); }
+
+  /* BMI RESULT */
+  .bmi-badge {
+    text-align:center; padding:30px;
+    background:rgba(56,189,248,0.08);
+    border:1px solid rgba(56,189,248,0.2);
+    border-radius:18px; margin-bottom:24px;
+  }
+  .bmi-num {
+    font-family:'Outfit',sans-serif;
+    font-size:60px; font-weight:800;
+    line-height:1;
+    background:linear-gradient(135deg,#38bdf8,#34d399);
+    -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+  }
+  .bmi-label { color:var(--muted); font-size:14px; margin-top:6px; }
+  .bmi-status {
+    display:inline-block; margin-top:12px;
+    padding:6px 18px; border-radius:999px;
+    font-size:14px; font-weight:600;
+  }
+  .status-underweight { background:rgba(251,146,60,0.2); color:#fb923c; }
+  .status-normal      { background:rgba(52,211,153,0.2);  color:#34d399; }
+  .status-overweight  { background:rgba(244,114,182,0.2); color:#f472b6; }
+  .status-obese       { background:rgba(248,113,113,0.2); color:#f87171; }
+
+  /* GOAL CARDS */
+  .goal-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
+  .goal-card {
+    padding:24px 20px; border-radius:16px;
+    border:2px solid var(--border);
+    background:var(--surface);
+    cursor:pointer; text-align:center; transition:.3s;
+  }
+  .goal-card:hover { border-color:var(--accent); background:rgba(56,189,248,0.07); }
+  .goal-card.selected { border-color:var(--accent); background:rgba(56,189,248,0.1); }
+  .goal-card .g-icon { font-size:32px; margin-bottom:10px; }
+  .goal-card h3 { font-family:'Outfit',sans-serif; font-size:16px; font-weight:700; }
+  .goal-card p  { font-size:12px; color:var(--muted); margin-top:4px; }
+
+  /* BODY TYPE */
+  .body-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; margin-bottom:18px; }
+  .body-card {
+    padding:22px 14px; border-radius:16px;
+    border:2px solid var(--border);
+    background:var(--surface);
+    cursor:pointer; text-align:center; transition:.3s;
+  }
+  .body-card:hover { border-color:var(--accent2); background:rgba(52,211,153,0.07); }
+  .body-card.selected { border-color:var(--accent2); background:rgba(52,211,153,0.1); }
+  .body-card .b-icon { font-size:30px; margin-bottom:10px; }
+  .body-card h3 { font-family:'Outfit',sans-serif; font-size:15px; font-weight:700; }
+  .body-card p  { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.5; }
+
+  /* DIET RESULT */
+  .diet-header { text-align:center; margin-bottom:36px; }
+  .diet-header h1 { font-size:30px; }
+  .diet-header .tags { display:flex; gap:8px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+  .tag {
+    padding:5px 16px; border-radius:999px; font-size:13px; font-weight:500;
+  }
+  .tag-blue  { background:rgba(56,189,248,0.15);  color:#38bdf8;  border:1px solid rgba(56,189,248,0.25); }
+  .tag-green { background:rgba(52,211,153,0.15);  color:#34d399;  border:1px solid rgba(52,211,153,0.25); }
+  .tag-pink  { background:rgba(244,114,182,0.15); color:#f472b6;  border:1px solid rgba(244,114,182,0.25); }
+
+  .meals-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin-bottom:28px; }
+  .meal-box {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:18px; padding:24px; transition:.3s;
+  }
+  .meal-box:hover { transform:translateY(-4px); border-color:rgba(56,189,248,0.3); }
+  .meal-time {
+    font-size:12px; font-weight:600; letter-spacing:1px; text-transform:uppercase;
+    color:var(--accent); margin-bottom:10px;
+  }
+  .meal-food { font-size:15px; line-height:1.6; color:var(--text); }
+
+  /* FOOD SECTION */
+  .food-columns { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:20px; }
+  .food-col {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:18px; padding:24px; transition:.3s;
+  }
+  .food-col:hover { transform:translateY(-4px); }
+  .food-col h3 {
+    font-family:'Outfit',sans-serif; font-size:16px; font-weight:700;
+    margin-bottom:16px; padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  .food-col ul { list-style:none; }
+  .food-col ul li {
+    padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.04);
+    font-size:14px; display:flex; align-items:center; gap:8px;
+  }
+  .food-col ul li:last-child { border-bottom:none; }
+  .food-col ul li::before { content:''; width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+  .col-gain  h3::before { content:'💪 '; }
+  .col-loss  h3::before { content:'🥗 '; }
+  .col-avoid h3::before { content:'🚫 '; }
+  .col-daily h3::before { content:'✅ '; }
+  .col-gain  ul li::before { background:#38bdf8; }
+  .col-loss  ul li::before { background:#34d399; }
+  .col-avoid ul li::before { background:#f87171; }
+  .col-daily ul li::before { background:#a78bfa; }
+
+  /* BACK BTN AREA */
+  .back-area { text-align:center; margin-top:20px; }
+
+  /* DIVIDER */
+  .divider { height:1px; background:var(--border); margin:20px 0; }
+
+  /* USER GREETING */
+  .greeting { font-size:14px; color:var(--muted); margin-bottom:20px; }
+  .greeting span { color:var(--accent); font-weight:600; }
+
+  /* RESPONSIVE */
+  @media(max-width:600px){
+    .card { padding:32px 22px; }
+    .goal-grid { grid-template-columns:1fr; }
+    .body-grid { grid-template-columns:1fr; }
+    nav { padding:14px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">🥗 SmartDiet <span>System</span></div>
+  <div class="nav-steps">
+    <div class="step-dot active" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+    <div class="step-dot" id="dot4"></div>
+    <div class="step-dot" id="dot5"></div>
+  </div>
+</nav>
+
+<!-- PAGE 1: LOGIN -->
+<div class="page active" id="page1">
+  <div class="hero">
+    <div class="card">
+      <div class="card-icon icon-blue">🔐</div>
+      <h1>Welcome Back</h1>
+      <p class="subtitle">Login to access your personalised diet plan</p>
+      <div class="error-msg" id="login-error">Invalid username or password.</div>
+      <div class="field">
+        <label>USERNAME</label>
+        <input type="text" id="login-user" placeholder="Enter your name" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>PASSWORD</label>
+        <input type="password" id="login-pass" placeholder="Enter password">
+      </div>
+      <small style="color:var(--muted);font-size:12px;display:block;margin-bottom:16px;">Demo: any name + password "diet123"</small>
+      <button class="btn" onclick="doLogin()">Login →</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2: BMI CALCULATOR -->
+<div class="page" id="page2">
+  <div class="hero">
+    <div class="card">
+      <div class="card-icon icon-green">📊</div>
+      <h1>BMI Calculator</h1>
+      <p class="subtitle">Enter your measurements to calculate your Body Mass Index</p>
+      <div class="field">
+        <label>FULL NAME</label>
+        <input type="text" id="bmi-name" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label>HEIGHT (cm)</label>
+        <input type="number" id="bmi-height" placeholder="e.g. 170" min="50" max="250">
+      </div>
+      <div class="field">
+        <label>WEIGHT (kg)</label>
+        <input type="number" id="bmi-weight" placeholder="e.g. 65" min="20" max="300">
+      </div>
+      <button class="btn btn-green" onclick="calcBMI()">Calculate BMI →</button>
+      <button class="btn btn-ghost" onclick="goTo(1)">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 3: BMI RESULT + GOAL -->
+<div class="page" id="page3">
+  <div class="hero">
+    <div class="card">
+      <div class="card-icon icon-blue">📈</div>
+      <p class="greeting">Hello, <span id="res-name">User</span>! Here are your results.</p>
+      <h1>Your BMI Result</h1>
+      <div class="bmi-badge">
+        <div class="bmi-num" id="res-bmi">—</div>
+        <div class="bmi-label">Body Mass Index</div>
+        <div class="bmi-status" id="res-status-badge">—</div>
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:24px;line-height:1.6;" id="res-rec">—</p>
+      <div class="divider"></div>
+      <p style="font-size:14px;font-weight:600;margin-bottom:14px;margin-top:18px;">Now, choose your goal:</p>
+      <div class="goal-grid">
+        <div class="goal-card" id="goal-gain" onclick="selectGoal('Weight Gain')">
+          <div class="g-icon">💪</div>
+          <h3>Weight Gain</h3>
+          <p>Build muscle &amp; mass</p>
+        </div>
+        <div class="goal-card" id="goal-loss" onclick="selectGoal('Weight Loss')">
+          <div class="g-icon">🔥</div>
+          <h3>Weight Loss</h3>
+          <p>Burn fat &amp; get lean</p>
+        </div>
+      </div>
+      <button class="btn" onclick="goToBodyType()">Continue →</button>
+      <button class="btn btn-ghost" onclick="goTo(2)">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 4: BODY TYPE -->
+<div class="page" id="page4">
+  <div class="hero">
+    <div class="card">
+      <div class="card-icon icon-pink">🧬</div>
+      <h1>Your Body Type</h1>
+      <p class="subtitle">Select the body type that best describes you</p>
+      <div class="body-grid">
+        <div class="body-card" id="body-ecto" onclick="selectBody('Ectomorph')">
+          <div class="b-icon">🦴</div>
+          <h3>Ectomorph</h3>
+          <p>Lean &amp; long, hard to gain weight</p>
+        </div>
+        <div class="body-card" id="body-meso" onclick="selectBody('Mesomorph')">
+          <div class="b-icon">⚡</div>
+          <h3>Mesomorph</h3>
+          <p>Athletic, gains &amp; loses easily</p>
+        </div>
+        <div class="body-card" id="body-endo" onclick="selectBody('Endomorph')">
+          <div class="b-icon">🛡️</div>
+          <h3>Endomorph</h3>
+          <p>Stocky, gains weight easily</p>
+        </div>
+      </div>
+      <button class="btn btn-green" onclick="goToDiet()">Generate Diet Plan →</button>
+      <button class="btn btn-ghost" onclick="goTo(3)">← Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 5: DIET PLAN + FOOD LIST -->
+<div class="page" id="page5">
+  <div class="hero" style="align-items:flex-start;padding:40px 20px;">
+    <div class="card card-wide">
+      <div class="diet-header">
+        <div class="card-icon icon-orange" style="margin:0 auto 20px;">🍽️</div>
+        <h1 id="diet-title">Your Diet Plan</h1>
+        <div class="tags" id="diet-tags"></div>
+      </div>
+
+      <h2 style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;margin-bottom:18px;">🕐 Daily Meal Schedule</h2>
+      <div class="meals-grid" id="meals-grid"></div>
+
+      <div class="divider"></div>
+      <h2 style="font-family:'Outfit',sans-serif;font-size:18px;font-weight:700;margin:24px 0 18px;">🥦 Food Reference Guide</h2>
+      <div class="food-columns">
+        <div class="food-col col-gain">
+          <h3>Foods for Weight Gain</h3>
+          <ul>
+            <li>Eggs</li><li>Chicken Breast</li><li>Rice</li>
+            <li>Bananas</li><li>Peanut Butter</li><li>Milk</li>
+            <li>Paneer</li><li>Whey Protein</li><li>Dry Fruits</li><li>Potatoes</li>
+          </ul>
+        </div>
+        <div class="food-col col-loss">
+          <h3>Foods for Weight Loss</h3>
+          <ul>
+            <li>Oats</li><li>Salads</li><li>Cucumber</li>
+            <li>Carrots</li><li>Boiled Eggs</li><li>Green Tea</li>
+            <li>Soup</li><li>Brown Rice</li><li>Apple</li><li>Sprouts</li>
+          </ul>
+        </div>
+        <div class="food-col col-avoid">
+          <h3>Avoid for Weight Loss</h3>
+          <ul>
+            <li>Cold Drinks</li><li>Pizza</li><li>Burgers</li>
+            <li>Deep Fried Foods</li><li>Excess Sugar</li><li>Ice Cream</li>
+            <li>Bakery Foods</li><li>Processed Foods</li>
+          </ul>
+        </div>
+        <div class="food-col col-daily">
+          <h3>Daily Healthy Routine</h3>
+          <ul>
+            <li>Drink 3–4 Litres Water</li><li>Sleep 7–8 Hours</li>
+            <li>Exercise Daily</li><li>Eat Protein Rich Foods</li>
+            <li>Avoid Junk Food</li><li>Eat at Regular Times</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="back-area" style="margin-top:30px;">
+        <button class="btn btn-ghost" style="max-width:220px;margin:auto;" onclick="restart()">🔄 Start Over</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- State ----
+  let state = { user:'', bmi:0, status:'', goal:'', body:'' };
+
+  // ---- Navigation ----
+  function goTo(n) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page'+n).classList.add('active');
+    updateDots(n);
+    window.scrollTo(0,0);
+  }
+  function updateDots(active) {
+    for(let i=1;i<=5;i++){
+      const d = document.getElementById('dot'+i);
+      d.classList.remove('active','done');
+      if(i < active) d.classList.add('done');
+      if(i === active) d.classList.add('active');
+    }
+  }
+
+  // ---- Page 1: Login ----
+  function doLogin() {
+    const u = document.getElementById('login-user').value.trim();
+    const p = document.getElementById('login-pass').value.trim();
+    const err = document.getElementById('login-error');
+    if(!u || !p){ err.style.display='block'; err.textContent='Please fill in both fields.'; return; }
+    if(p !== 'diet123'){ err.style.display='block'; err.textContent='Incorrect password. Try "diet123".'; return; }
+    err.style.display='none';
+    state.user = u;
+    goTo(2);
+  }
+  document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+
+  // ---- Page 2: BMI ----
+  function calcBMI() {
+    const name   = document.getElementById('bmi-name').value.trim();
+    const height = parseFloat(document.getElementById('bmi-height').value);
+    const weight = parseFloat(document.getElementById('bmi-weight').value);
+    if(!name || !height || !weight){ alert('Please fill all fields.'); return; }
+    const hm = height / 100;
+    const bmi = (weight / (hm*hm)).toFixed(1);
+    let status, cls, rec;
+    if(bmi < 18.5){
+      status='Underweight'; cls='status-underweight';
+      rec='You are below the healthy weight range. A weight gain plan with nutrient-dense foods and strength training is recommended.';
+    } else if(bmi < 25){
+      status='Normal Weight'; cls='status-normal';
+      rec='Great! You are in a healthy BMI range. Maintain your current lifestyle with balanced nutrition and regular exercise.';
+    } else if(bmi < 30){
+      status='Overweight'; cls='status-overweight';
+      rec='You are slightly above the healthy range. A moderate weight loss plan with cardio and mindful eating will help.';
+    } else {
+      status='Obese'; cls='status-obese';
+      rec='Your BMI indicates obesity. A structured weight loss diet and regular physical activity is strongly advised.';
+    }
+    state.bmi = bmi; state.status = status;
+    document.getElementById('res-name').textContent = name || state.user;
+    document.getElementById('res-bmi').textContent = bmi;
+    document.getElementById('res-status-badge').textContent = status;
+    document.getElementById('res-status-badge').className = 'bmi-status '+cls;
+    document.getElementById('res-rec').textContent = rec;
+    // reset goal selection
+    document.querySelectorAll('.goal-card').forEach(c=>c.classList.remove('selected'));
+    state.goal = '';
+    goTo(3);
+  }
+
+  // ---- Page 3: Goal ----
+  function selectGoal(g) {
+    state.goal = g;
+    document.querySelectorAll('.goal-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById(g==='Weight Gain'?'goal-gain':'goal-loss').classList.add('selected');
+  }
+  function goToBodyType() {
+    if(!state.goal){ alert('Please select a goal first.'); return; }
+    document.querySelectorAll('.body-card').forEach(c=>c.classList.remove('selected'));
+    state.body = '';
+    goTo(4);
+  }
+
+  // ---- Page 4: Body Type ----
+  function selectBody(b) {
+    state.body = b;
+    document.querySelectorAll('.body-card').forEach(c=>c.classList.remove('selected'));
+    const map = {Ectomorph:'body-ecto',Mesomorph:'body-meso',Endomorph:'body-endo'};
+    document.getElementById(map[b]).classList.add('selected');
+  }
+  function goToDiet() {
+    if(!state.body){ alert('Please select a body type.'); return; }
+    buildDietPage();
+    goTo(5);
+  }
+
+  // ---- Page 5: Diet Plan ----
+  const dietPlans = {
+    'Weight Gain': {
+      Ectomorph: {
+        'Early Morning (6 AM)': 'Soaked almonds (10) + Banana + 1 glass warm milk',
+        'Breakfast (8 AM)': 'Oats with milk + 3 Boiled eggs + Peanut butter toast',
+        'Mid Morning (11 AM)': 'Whey protein shake + 1 Apple',
+        'Lunch (1 PM)': 'Rice (2 cups) + Chicken breast (200g) + Daal + Salad',
+        'Evening Snack (4 PM)': 'Paneer cubes (100g) + Dry fruits + Milk',
+        'Dinner (7 PM)': 'Chapati (3) + Chicken curry + Vegetables + Curd',
+      },
+      Mesomorph: {
+        'Early Morning (6 AM)': 'Warm water + Soaked walnuts (5) + Banana',
+        'Breakfast (8 AM)': '3 Scrambled eggs + Brown bread + Milk',
+        'Mid Morning (11 AM)': 'Protein shake + Handful of dry fruits',
+        'Lunch (1 PM)': 'Rice (1.5 cups) + Fish / Chicken (150g) + Daal + Salad',
+        'Evening Snack (4 PM)': 'Paneer sandwich + Buttermilk',
+        'Dinner (7 PM)': 'Chapati (2) + Mixed vegetable curry + Curd',
+      },
+      Endomorph: {
+        'Early Morning (6 AM)': 'Warm lemon water + Soaked almonds (8)',
+        'Breakfast (8 AM)': '2 Egg whites + Oats + Green tea',
+        'Mid Morning (11 AM)': 'Protein shake (low carb) + Apple',
+        'Lunch (1 PM)': 'Brown rice (1 cup) + Grilled chicken (150g) + Salad + Daal',
+        'Evening Snack (4 PM)': 'Roasted chana + Buttermilk',
+        'Dinner (7 PM)': 'Chapati (2) + Vegetable curry + Curd (low fat)',
+      }
+    },
+    'Weight Loss': {
+      Ectomorph: {
+        'Early Morning (6 AM)': 'Warm lemon water + 5 Soaked almonds',
+        'Breakfast (8 AM)': 'Oats with skimmed milk + 2 Boiled egg whites + Green tea',
+        'Mid Morning (11 AM)': 'Cucumber slices + Buttermilk',
+        'Lunch (1 PM)': 'Brown rice (small) + Grilled fish / chicken + Green salad + Daal (less oil)',
+        'Evening Snack (4 PM)': 'Sprouts salad + Green tea',
+        'Dinner (7 PM)': 'Chapati (1) + Mixed veg soup + Curd (low fat)',
+      },
+      Mesomorph: {
+        'Early Morning (6 AM)': 'Warm water with lemon + Soaked walnuts (4)',
+        'Breakfast (8 AM)': '2 Egg whites + Vegetable upma + Green tea',
+        'Mid Morning (11 AM)': 'Apple / Orange + Buttermilk',
+        'Lunch (1 PM)': 'Brown rice (3/4 cup) + Baked / grilled chicken (120g) + Salad + Soup',
+        'Evening Snack (4 PM)': 'Roasted chana + Carrot sticks',
+        'Dinner (7 PM)': 'Chapati (1) + Paneer bhurji (low oil) + Salad',
+      },
+      Endomorph: {
+        'Early Morning (6 AM)': 'Detox water (cucumber + lemon) + 5 Soaked almonds',
+        'Breakfast (8 AM)': 'Vegetable oats / daliya + 1 Egg white + Green tea',
+        'Mid Morning (11 AM)': 'Sprouts + Lemon water',
+        'Lunch (1 PM)': 'Small bowl brown rice + Dal (less oil) + Grilled fish + Salad',
+        'Evening Snack (4 PM)': 'Roasted chana + Green tea / Black coffee',
+        'Dinner (7 PM)': 'Vegetable soup + Chapati (1) + Salad',
+      }
+    }
+  };
+
+  function buildDietPage() {
+    const plan = dietPlans[state.goal][state.body];
+    document.getElementById('diet-title').textContent = state.goal + ' Diet Plan';
+    document.getElementById('diet-tags').innerHTML =
+      `<span class="tag tag-blue">${state.goal}</span>
+       <span class="tag tag-green">${state.body}</span>
+       <span class="tag tag-pink">BMI: ${state.bmi}</span>`;
+
+    let html = '';
+    for(const [time, food] of Object.entries(plan)){
+      html += `<div class="meal-box"><div class="meal-time">${time}</div><div class="meal-food">${food}</div></div>`;
+    }
+    document.getElementById('meals-grid').innerHTML = html;
+  }
+
+  function restart() {
+    state = { user:'', bmi:0, status:'', goal:'', body:'' };
+    document.getElementById('login-user').value='';
+    document.getElementById('login-pass').value='';
+    document.getElementById('login-error').style.display='none';
+    goTo(1);
+  }
+</script>
+</body>
+</html>
